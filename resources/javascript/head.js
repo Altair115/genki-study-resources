@@ -95,7 +95,7 @@
 
       // pause the timer when opening the modal
       if (window.Genki && Genki.timer && Genki.timer.isRunning()) {
-        Genki.timer.pause();
+        Genki.pauseTimerWhenOpenPopup();
       }
       
       return o;
@@ -112,7 +112,7 @@
 
       // resume the timer when closing the modal
       if (window.Genki && Genki.timer && Genki.timer.isPaused()) {
-        Genki.timer.start();
+        Genki.startTimerWhenClosePopup();
       }
     }
   };
@@ -169,12 +169,15 @@
           darkMode = localStorage.darkMode || 'off',
           customCSS = localStorage.genkiCustomCSS || '',
           furigana = localStorage.furiganaVisible || 'true',
+          spoilerMode = localStorage.spoilerMode || 'false',
           vocabHorizontal = localStorage.vocabHorizontal || 'false',
+          feedbackMode = localStorage.feedbackMode || 'classic',
           randomExercise = localStorage.genkiRandomExercise || 'all',
           skipExType = localStorage.genkiSkipExType || 'false',
           jishoLookUp = localStorage.genkiJishoLookUp || 'true',
           strokeOrder = localStorage.strokeOrderVisible || 'true',
-          tracingGuide = localStorage.tracingGuideVisible || 'true';
+          tracingGuide = localStorage.tracingGuideVisible || 'true',
+          timerAutoPause = localStorage.timerAutoPause || 'true';
       
       // create stylesheet for settings
       if (!GenkiSettings.stylesheet) {
@@ -224,6 +227,19 @@
           '</li>'+
         
           '<li>'+
+            '<span class="label" title="Changes the feedback mode for multple choice quizzes.\nInstant shows if your answer was correct right away, whereas Classic only shows your answers at the end of the quiz.">Multiple Choice Feedback Mode:</span>'+
+            '<select id="settings-feedback-mode" onchange="GenkiSettings.updateFeedbackMode(this);">'+
+              '<option value="classic"' + ( feedbackMode == 'classic' ? ' selected' : '' ) + '>Classic</option>'+
+              '<option value="instant"' + ( feedbackMode == 'instant' ? ' selected' : '' ) + '>Instant</option>'+
+            '</select>'+
+          '</li>'+
+        
+          '<li>'+
+            '<span class="label" title="Hides the choices in multiple choice vocab exercises, similar to a flash card mode.\nTurn this mode on if you keep looking at the choices to remember what a word means instead of recalling it from memory.">Multiple Choice Vocab Spoiler:</span>'+
+            '<button id="settings-vocab-spoiler" class="button' + (spoilerMode == 'true' ? '' : ' opt-off') + '" onclick="GenkiSettings.updateSpoilerMode(this);">' + (spoilerMode == 'true' ? 'ON' : 'OFF') + '</button>'+
+          '</li>'+
+        
+          '<li>'+
             '<span class="label" title="Changes the range for the Random Exercise button in the exercise list (change to Current Lesson if you want to avoid exercises above your current level)">Random Exercise Range:</span>'+
             '<select id="random-exercise-type" onchange="GenkiSettings.updateRandomExercise(this);">'+
               '<option value="all"' + ( randomExercise == 'all' ? ' selected' : '' ) + '>All Lessons</option>'+
@@ -249,6 +265,11 @@
           '<li>'+
             '<span class="label" title="Enable or disable the tracing guide display in stroke order exercises (3rd edition only)">Tracing Guide:</span>'+
             '<button id="settings-tracing-guide" class="button' + (tracingGuide == 'true' ? '' : ' opt-off') + '" onclick="GenkiSettings.updateTracingGuide(this);">' + (tracingGuide == 'true' ? 'ON' : 'OFF') + '</button>'+
+          '</li>'+
+
+          '<li>'+
+            '<span class="label" title="Enable or disable pausing timer when you leave or hide the exercise page">Pause Timer Automatically:</span>'+
+            '<button id="settings-timer-auto-pause" class="button' + (timerAutoPause == 'true' ? '' : ' opt-off') + '" onclick="GenkiSettings.updateTimerAutoPause(this);">' + (timerAutoPause == 'true' ? 'ON' : 'OFF') + '</button>'+
           '</li>'+
         '</ul>',
 
@@ -300,14 +321,14 @@
           '.quiz-over .vocab-horizontal [data-mistakes]:after, .verb-quiz.quiz-over [data-mistakes]:after { font-size:' + (10 * n) + 'px }'+
           '.define, #announcement .announcement .date, #quick-search-results li[data-lesson]:before, .writing-quiz .quiz-item:before, .helper-present #question-list .quiz-item:before, .furigana, .inline-furi i, ruby rt, .secondary-answer, .def-ja.def-furi i { font-size:' + (11 * n) + 'px }'+
           '#exercise-title:after, .title[data-page]:after, #exercise-list li a[data-page]:hover:after, #exercise-list li a[data-page]:focus:after, .leg-desc, .sectionNumber3rd { font-size:' + (12 * n) + 'px }'+
-          '.kanji-readings.drag-quiz .vocab-horizontal #question-list .quiz-answer-zone .quiz-item, .kanji-meanings.drag-quiz .vocab-horizontal #question-list .quiz-answer-zone .quiz-item, .image-list span i { font-size:' + (13 * n) + 'px }'+
+          '.kanji-readings.drag-quiz .vocab-horizontal #question-list .quiz-answer-zone .quiz-item, .kanji-meanings.drag-quiz .vocab-horizontal #question-list .quiz-answer-zone .quiz-item, .image-list span i, .checkbox-label { font-size:' + (13 * n) + 'px }'+
           'body, p, input[type="text"], input[type="number"], textarea, select, #announcement .announcement, #link-list span, .workbook-title, .normal-block, .quiz-over [data-mistakes]:after, #wrongAnswer:before, .writing-quiz .quiz-item, input.writing-zone-input, .quiz-multi-question, .quiz-multi-answer, .text-block, .fill-quiz .writing-zone-input, .problem-hint, .problem-answer, .definition, .lesson-summary, #exercise-list .sub-lesson-title, .button:not(.play-button), a.button, #study-tool-settings li { font-size:' + (14 * n) + 'px }'+
           '#exercise-list .lesson-title, #genki-modal-content, .table.grammar-table td { font-size:' + (15 * n) + 'px }'+
-          '#link-list i, #exercise:before, .loading:before, .sub-lesson-title, .workbook-title, .title-desc, #exercise .text-passage, #complete-banner, #downloadCode:before, .definition-count, .multi-vocab rt { font-size:' + (16 * n) + 'px }'+
+          '#link-list i, #exercise:before, .loading:before, .sub-lesson-title, .workbook-title, .title-desc, #exercise .text-passage, #complete-banner, #downloadCode:before, .definition-count, .multi-vocab rt, .table-head { font-size:' + (16 * n) + 'px }'+
           '.group-selectors .select-all:before, .group-selectors .deselect-all:before { font-size:' + (17 * n) + 'px }'+
           '.button .fa, .more-exercises a:after, .more-exercises a:before, #link-github i, #link-help i, .title-med, .sub-title, #exercise-list .main-title, .quiz-multi-answer:before, #genki-site-settings, .dictionary-index li, #quick-jisho-title { font-size:' + (18 * n) + 'px }'+
           '#quick-actions h2, .lesson-title, .vocab-key:before { font-size:' + (20 * n) + 'px }'+
-          '.section-title, #exercise-title, #break-timer, #announcement .fa { font-size:' + (24 * n) + 'px }'+
+          '.section-title, #exercise-title, #break-timer, #announcement .fa, .multi-vocab-sentence { font-size:' + (24 * n) + 'px }'+
           '.kanji-readings.drag-quiz #question-list .quiz-item, .kanji-meanings.drag-quiz #question-list .quiz-item { font-size:' + (26 * n) + 'px }'+
           '.title { font-size:' + (28 * n) + 'px }'+
           '.multi-vocab { font-size:' + (32 * n) + 'px }'+
@@ -484,9 +505,52 @@
     },
     
     
+    // updates the feedback mode preference
+    updateFeedbackMode : function (caller) {
+      if (caller) {
+        localStorage.feedbackMode = caller.value;
+        
+        if (window.Genki && Genki.feedbackMode) {
+          Genki.feedbackMode = caller.value;
+        }
+        
+        // toggle display state of the next button
+        var next = document.getElementById('next-button');
+        
+        if (next) {
+          // automatically proceed to next question if the student answered while in instant mode and switched to classic mode
+          if (Genki.feedbackMode == 'classic' && /visible/.test(next.style.visibility)) {
+            next.firstChild.click();
+          }
+          
+          next.style.display = Genki.feedbackMode == 'classic' ? 'none' : '';
+        }
+      }
+    },
+    
+    
     // updates the random exercise preference
     updateRandomExercise : function (caller) {
       if (caller) localStorage.genkiRandomExercise = caller.value;
+    },
+    
+    
+    // updates vocab spoiler preference
+    updateSpoilerMode : function (caller) {
+      GenkiSettings.updateButton(caller, function (state) {
+
+        if (document.querySelector('.vocab-spoiler')) {
+          var zone = document.getElementById('quiz-zone');
+
+          if (state == 'ON') {
+            zone.className += ' spoiler-mode';
+          } else {
+            zone.className = zone.className.replace('spoiler-mode', '');
+          }
+        }
+
+        localStorage.spoilerMode = state == 'ON' ? 'true' : 'false';
+      });
     },
     
     
@@ -574,6 +638,19 @@
         }
       });
     },
+
+    // updates timer auto pause preference
+    updateTimerAutoPause : function (caller) {
+      GenkiSettings.updateButton(caller, function (state) {
+        localStorage.timerAutoPause = state == 'ON' ? 'true' : 'false';
+
+        if (state == 'ON') {
+          document.addEventListener("visibilitychange", Genki.startOrPauseTimerByVisibility);
+        } else {
+          document.removeEventListener("visibilitychange", Genki.startOrPauseTimerByVisibility);
+        }
+      });
+    },
     
     // creates the global settings stylesheet
     createStylesheet : function () {
@@ -611,9 +688,17 @@
   
   // # DARK MODE #
   // applies the dark mode theme on page load
-  if (storageOK && localStorage.darkMode == 'on') {
-    document.write('<link id="dark-mode" href="' + getPaths() + 'resources/css/stylesheet-dark.min.css" rel="stylesheet">');
-    document.documentElement.className += ' dark-mode';
+  if (storageOK) {
+    // automatically enables dark mode (once) based on the user's preferences
+    if (!localStorage.darkMode && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      localStorage.darkMode = 'on';
+    }
+
+    // applies the dark mode theme on page load
+    if (localStorage.darkMode == 'on') {
+      document.write('<link id="dark-mode" href="' + getPaths() + 'resources/css/stylesheet-dark.min.css" rel="stylesheet">');
+      document.documentElement.className += ' dark-mode';
+    }
   }
   
   

@@ -1484,6 +1484,34 @@ input.writing-zone-input:focus { border-color:#F93; }
   margin-top:-8px;
 }
 
+.multi-vocab hr { margin:10px 0; }
+.multi-vocab-sentence { font-size:24px; }
+
+/* multi-choice vocab spoiler */
+.vocab-spoiler-toggle { display:none; }
+
+.spoiler-mode .vocab-spoiler-toggle {
+  display:block;
+  margin:10px auto 0 auto;
+}
+
+.spoiler-mode .vocab-spoiler { position:relative; }
+.spoiler-mode .vocab-spoiler:after {
+  content:"";
+  background:#CCC;
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+}
+
+.quiz-over .vocab-spoiler-toggle, .quiz-over .vocab-spoiler:after, .spoiler-off.vocab-spoiler:after {
+  display:none;
+}
+
+
+/* stroke order quiz */
 .kana-font { font-family:"NotoSansJP", "SawarabiGothic", "MS Gothic", "Yu Gothic", "Meiryo" }
 .drawing-quiz .quiz-item-text.kana-font { margin-top:-7px }
 .drawing-quiz .quiz-item { overflow:hidden; }
@@ -1541,13 +1569,18 @@ ruby rt {
 }
 
 /* hover to view furigana for multi-choice vocab */
-.helper-hidden .multi-vocab ruby:hover {
+.helper-hidden .multi-vocab ruby {
   display:inline-block;
   vertical-align:top;
 }
 
-.helper-hidden .multi-vocab ruby:hover rt {
+.helper-hidden .multi-vocab rt {
   display:block;
+  visibility:hidden;
+}
+
+.helper-hidden .multi-vocab ruby:hover rt {
+  visibility:visible;
 }
 
 /* for single characters */
@@ -1652,14 +1685,18 @@ ruby rt {
 .multi-quiz.quiz-over .quiz-multi-answer { pointer-events:none; }
 .multi-quiz.quiz-over .text-selection-mode .quiz-multi-answer { pointer-events:auto; }
 
+.multi-quiz.quiz-over .wrong-answer .quiz-multi-answer.selected-answer, .multi-quiz.quiz-over .wrong-answer .quiz-multi-answer[data-answer="true"], .multi-quiz.quiz-over .quiz-multi-answer.selected-answer {
+  border-width:3px;
+}
+
 .multi-quiz.quiz-over .quiz-multi-answer.selected-answer { border-color:#080; }
 .multi-quiz.quiz-over .quiz-multi-answer.selected-answer:before, .multi-quiz.quiz-over .quiz-multi-answer[data-answer="true"]:before { color:#080; }
 
-.multi-quiz.quiz-over .question-block.wrong-answer .quiz-multi-answer.selected-answer { border-color:#F00; }
-.multi-quiz.quiz-over .question-block.wrong-answer .quiz-multi-answer.selected-answer:before { color:#F00; }
+.multi-quiz.quiz-over .wrong-answer .quiz-multi-answer.selected-answer { border-color:#F00; }
+.multi-quiz.quiz-over .wrong-answer .quiz-multi-answer.selected-answer:before { color:#F00; }
 
-.multi-quiz.quiz-over .question-block.wrong-answer .quiz-multi-answer[data-answer="true"] { border-color:#09F; }
-.multi-quiz.quiz-over .question-block.wrong-answer .quiz-multi-answer[data-answer="true"]:before { color:#09F; }
+.multi-quiz.quiz-over .wrong-answer .quiz-multi-answer[data-answer="true"] { border-color:#09F; }
+.multi-quiz.quiz-over .wrong-answer .quiz-multi-answer[data-answer="true"]:before { color:#09F; }
 
 .kanji-canvas[data-answer="true"] { border-color:#080; }
 .kanji-canvas[data-answer="false"] { border-color:#F00; }
@@ -2104,6 +2141,15 @@ ruby rt {
   margin:5px 0;
 }
 
+/* sentence field */
+#study-tool-ui .sentence-field {
+  display:none;
+  width:50%;
+  margin-top:5px;
+}
+
+.show-sentences #study-tool-ui .sentence-field { display:block; }
+
 /* textarea size for the JSON code */
 #study-tool-code textarea {
   height:100px;
@@ -2276,14 +2322,14 @@ ruby rt {
 
 /* SETTINGS MANAGER */
 #genki-site-settings {
-  font-size:18px;
+  font-size:26px;
   display:inline-block;
-  height:26px;
-  line-height:26px;
-  margin-left:10px;
+  height:20px;
+  line-height:20px;
+  margin-left:15px;
 }
 #genki-site-settings:focus { color:#F93; }
-#genki-site-settings i { vertical-align:-2px; }
+#genki-site-settings i { vertical-align:-5px; }
 
 .genki-settings-list { list-style-type:none; }
 .genki-settings-list li { margin:10px 0; }
@@ -2543,6 +2589,19 @@ input:checked + .genki_pseudo_checkbox:after { font-size:14px; }
   padding:3px;
   overflow:auto;
   position:relative;
+}
+
+/* selected word manager */
+#selected_words_list.dict-search-results .definition {
+  list-style-type:decimal;
+  list-style-position:inside;
+}
+
+#selected_words_list.dict-search-results {
+  width:80%;
+  height:80%;
+  padding:5px 10px;
+  margin:0 auto;
 }
 
 /* groups */

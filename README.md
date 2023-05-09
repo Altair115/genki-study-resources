@@ -6,6 +6,8 @@ Genki Study Resources is a website that offers a vast collection of exercises fo
 
 **Offline Version:** [download](https://github.com/SethClydesdale/genki-study-resources/archive/master.zip)
 
+If you're interested in learning Japanese, please see [this guide](https://sethclydesdale.github.io/genki-study-resources/help/japanese-guide/)!
+
 -----
 
 **Quick Links**
@@ -58,9 +60,12 @@ If you have any suggestions, feedback, questions, or bugs to report, feel free t
 ##### Tools
 - [Anki - SRS Flashcard App](https://apps.ankiweb.net/) (great for memorizing vocab; you can find decks for Genki [here](https://sethclydesdale.github.io/genki-study-resources/help/anki-decks/))
 - [Jisho - Online Japanese Dictionary](http://jisho.org/) (extremely useful for looking up words, kanji, etc.)
+- [Dictionary of Japanese Grammar](https://core6000.neocities.org/dojg/) (godsend for quickly looking up grammar points)
 - [Capture2Text](http://capture2text.sourceforge.net/) (very useful for copying and looking up kanji in games, images, etc.)
+- [Yomichan](https://foosoft.net/projects/yomichan/) (for quickly looking up words while reading, or for using the search page in tandem with Capture2Text)
 - [KanjiTomo](https://www.kanjitomo.net/) (useful for reading manga, LNs, etc.)
 - [Genki xlsx Vocab Lists](https://github.com/SethClydesdale/genki-study-resources/tree/master/resources/tools/wordlist_E-J) (these are based on the vocab in Genki/on the site -- useful for printing out/using as a quick reference)
+- [Useful Tools List](https://sethclydesdale.github.io/genki-study-resources/help/japanese-guide/#tools) (more in-depth list of tools for Japanese study)
 
 ##### Websites
 - [Genki Self-study Room](http://genki.japantimes.co.jp/self_en) | [Genki Online](https://genki3.japantimes.co.jp/) (official Genki sites/resources)
@@ -79,6 +84,7 @@ Genki Study Resources was made possible thanks to...
 - [Patrick Roberts](https://github.com/patrickroberts) for [his help with an algorithm](https://stackoverflow.com/a/59337819/12502093) that helped make mixed kana/kanji answers possible in written quizzes.
 - [Dominik Klein](https://github.com/asdfjkl) for [his help with adding new recognition patterns](https://github.com/asdfjkl/kanjicanvas/issues/1) for the stroke order exercises.
 - [Ronserruya](https://github.com/Ronserruya) for the [Anki Decks and Deck Maker script](https://github.com/SethClydesdale/genki-study-resources/pull/89).
+- [Zakkaruu](https://github.com/Zakkaruu) for the [Kanji Anki Decks](https://github.com/SethClydesdale/genki-study-resources/issues/192).
 - [RealFakeAccount](https://github.com/RealFakeAccount) for the [xlsx wordlist generator](https://github.com/SethClydesdale/genki-study-resources/pull/109).
 - [sasagami358](http://sasagami358.blog.fc2.com/blog-entry-593.html) for the hiragana and katakana stroke order charts.
 - Everyone who helped support or contribute to this project, whether it was on GitHub or outside of it.

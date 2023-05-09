@@ -70,11 +70,11 @@
         
         '<div class="problem">{寒いし|さむいし|answer;width:98;hint:(it is cold)}、{眠いし|ねむいし|answer;width:70;hint:(sleepy)}、<ruby>起<rt>お</rt></ruby>きたくないです。</div>'+
         
-        '<div class="problem">{頭がいいし|あたまがいいし|answer;width:112;hint:(smart)}、{ギターが弾けるし|ギターがひけるし|answer;hint:(can play guitar)}、<ruby>田中<rt>たなか</rt></ruby>さんは<ruby>人気<rt>にんき</rt></ruby>があります。</div>'+
+        '<div class="problem">{頭がいいし|あたまがいいし|' + Genki.getAlts('頭が{良}いし', 'あたま|よ') + 'answer;width:112;hint:(smart)}、{ギターが弾けるし|ギターがひけるし|answer;hint:(can play guitar)}、<ruby>田中<rt>たなか</rt></ruby>さんは<ruby>人気<rt>にんき</rt></ruby>があります。</div>'+
         
         '<div class="problem">{テストがあるし|テストがあるし|answer;width:182;hint:(I have a test)}、{先生に会わな%(きゃ/ければ)いけないし|せんせいにあわな%(きゃ/ければ)いけないし|' + Genki.getAlts('{先生}に{会}わな{きゃ}いけないし', 'せんせい|あ|ければ') + 'answer;width:238;hint:(I have to meet the teacher)}、<ruby>忙<rt>いそが</rt></ruby>しいです。</div>'+
         
-        '<div class="problem">{よくうそをつくし|よくうそをつくし|answer;width:126;hint:(often tells a lie)}、{約束を守らないし|やくそくをまもらないし|' + Genki.getAlts('{約束}を{守}らないし', 'やくそく|まも') + 'answer;width:182;hint:(doesn\'t keep a promise)}、<ruby>山田<rt>やまだ</rt></ruby>さんがきらいです。</div>'+
+        '<div class="problem">{よくうそをつくし|良くうそをつくし|answer;width:126;hint:(often tells a lie)}、{約束を守らないし|やくそくをまもらないし|' + Genki.getAlts('{約束}を{守}らないし', 'やくそく|まも') + 'answer;width:182;hint:(doesn\'t keep a promise)}、<ruby>山田<rt>やまだ</rt></ruby>さんがきらいです。</div>'+
         
         '<div class="problem">{大学に入れたし|だいがくにはいれたし|' + Genki.getAlts('{大学}に{入}れたし', 'だいがく|はい') + 'answer;width:266;hint:(I was able to enter the university)}、{友だちがたくさんいるし|ともだちがたくさんいるし|' + Genki.getAlts('{友}{達}がたくさんいるし', 'とも|だち') + 'answer;width:182;hint:(I have many friends)}、<ruby>今<rt>いま</rt></ruby><ruby>幸<rt>しあわ</rt></ruby>せです。</div>'+
       '</div><br>'+
@@ -102,7 +102,7 @@
           '<div class="inner-problem">'+
             'Q：あなたの<ruby>町<rt>まち</rt></ruby>が<ruby>好<rt>す</rt></ruby>きですか。<br>'+
             'A：(Yes, I like it. There\'s a beautiful park, and my family is here.)<br>'+
-            '<i class="fa">&#xf061;</i>　{はい、好きです。きれいな公園があるし、家族がいるし。|はい、すきです。きれいなこうえんがあるし、かぞくがいるし。|' + Genki.getAlts('はい、{好}きです。きれいな{公園}があるし、{家族}がいるし。', 'す|こうえん|かぞく') + 'answer}'+
+            '<i class="fa">&#xf061;</i>　{はい、好きです。きれいな公園があるし、家族がいるし。|はい、すきです。きれいなこうえんがあるし、かぞくがいるし。|' + Genki.getAlts('はい、{好}きです。{きれい}な{公園}があるし、{家族}がいるし。', 'す|綺麗|こうえん|かぞく') + 'answer}'+
           '</div>'+
         '</div>'+
         

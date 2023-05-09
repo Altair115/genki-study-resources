@@ -19,13 +19,19 @@
     // checks if touchscreen controls
     isTouch : 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0,
     isTouching : false,
+
+    // tells us if timer is paused by popup
+    isTimerPausedByPopup: false,
+    
+    // tells us the student's preferred feedback mode for multi-choice quizzes (instant || classic)
+    feedbackMode : storageOK && localStorage.feedbackMode ? localStorage.feedbackMode : 'classic',
     
     // tells us if text selection mode is enabled (for multi-choice quizzes)
     textSelectMode : false,
     
     // tells us if stroke numbers are visible (for stroke order exercises)
     strokeNumberDisplay : false,
-    
+
     // tells us if a quiz item is marked in a drag and drop quiz
     markedItem : null,
     
@@ -131,6 +137,7 @@
 
     // info about the currently active exercise
     active : {
+      type : null, // current exercise type
       exercise : null, // placeholder for the active exercise's data
       index : 0, // index where active.exercise is located
       path : window.location.pathname.replace(/.*?\/lessons.*?\/(.*?\/.*?)\/.*/g, '$1'), // current exercise path
@@ -285,7 +292,7 @@
               // BEGIN conversion conditions for vocab or kana
               // multi-choice conversion
               if (o.type == 'multi') {
-                var quizlet = [], keys = [], keys2 = [], currentAnswer, answer, answers, def, i, j, k, n, n2;
+                var quizlet = [], keys = [], keys2 = [], currentAnswer, sentence, answer, answers, def, i, j, k, n, n2;
                 
                 // get keys for randomization of the vocabulary
                 for (i in o.quizlet) {
@@ -297,11 +304,15 @@
                 for (i = 0, j = keys.length; i < j; i++) {
                   n = Math.floor(Math.random() * keys.length);
                   def = keys[n].split('|');
-                  currentAnswer = o.quizlet[keys[n]];
+                  currentAnswer = o.quizlet[keys[n]].replace(/\|.*?$/, '');
+                  sentence = /\|/.test(o.quizlet[keys[n]]) ? o.quizlet[keys[n]].replace(/.*?\|(.*?$)/, '$1') : '';
                   
                   // push the question data
                   quizlet.push({
-                    question : '<div class="multi-vocab">' + (def[1] ? '<ruby>' : o.format == 'kanji' ? '<div class="big-kanji">' : '') + def[0] + (def[1] ? '<rt>' + def[1] + '</rt></ruby>' : o.format == 'kanji' ? '</div>' : '') + '</div>',
+                    question : '<div class="multi-vocab">'+
+                    (def[1] ? '<ruby>' : o.format == 'kanji' ? '<div class="big-kanji">' : '') + def[0] + (def[1] ? '<rt>' + def[1] + '</rt></ruby>' : o.format == 'kanji' ? '</div>' : '')+
+                    (sentence ? '<hr><div class="multi-vocab-sentence">' + sentence + '</div>' : '')+
+                    '</div>',
                     answers : ['A' + currentAnswer]
                   });
                   
@@ -313,7 +324,7 @@
                   while (k --> 0) {
                     if (answers.length) {
                       n2 = Math.floor(Math.random() * answers.length);
-                      answer = o.quizlet[answers[n2]];
+                      answer = o.quizlet[answers[n2]].replace(/\|.*?$/, '');
                       
                       // prevent identical answers from showing
                       if (answer == currentAnswer) {
@@ -390,7 +401,7 @@
                     quizlet += 
                     (i == n ? '</div><div>' : '')+ // changes columns
                     '<div class="problem">'+
-                      o.quizlet[keys[i]] + '<br>'+
+                      o.quizlet[keys[i]].replace(/\|.*?$/, '') + '<br>'+
                       // add '|answer' flag to problem if it contains a horizontal bar
                       // the horizontal bar indicates multiple answers in this instance
                       (/\|/.test(problem) ? problem.replace('}', '|answer}') : problem)+ 
@@ -453,6 +464,8 @@
         return false;
       }
       
+      // log current type
+      Genki.active.type = o.type;
 
       // # 1. DRAG AND DROP #
       if (o.type == 'drag') {
@@ -503,7 +516,7 @@
         quiz += '<div id="answer-list">';
         while (keysA.length) {
           i = Math.floor(Math.random() * keysA.length);
-          quiz += '<div tabindex="0" class="quiz-item" data-answer="' + keysA[i].replace(/\|.*?$/, '') + '"><div class="quiz-item-text">' + o.quizlet[keysA[i]] + '</div></div>';
+          quiz += '<div tabindex="0" class="quiz-item" data-answer="' + keysA[i].replace(/\|.*?$/, '') + '"><div class="quiz-item-text">' + o.quizlet[keysA[i]].replace(/\|.*?$/, '') + '</div></div>';
           keysA.splice(i, 1);
         }
         quiz += '</div>'; // close the answer list
@@ -611,11 +624,12 @@
 
       // # 4. MULTIPLE CHOICE #
       else if (o.type == 'multi') {
-        var quiz = '<div id="quiz-info">' + o.info + '</div><div id="question-list">',
+        var quiz = '<div id="quiz-info">' + o.info + '<br><b style="color:#6F6;">NEW:</b> You can now choose between "Instant" and "Classic" Feedback Mode for multiple choice quizzes in the <a href="#genki-site-settings" onclick="GenkiSettings.manager(); return false;">Site Settings</a>.' + '</div><div id="question-list">',
             answers = '<div id="answer-list">',
             option = 65, // used for tagging answers as A(65), B(66), C(67)..
             isAnswer = false,
             helper = false,
+            vocab = /"format":"vocab"/.test(Genki.exerciseData),
             q = o.quizlet,
             i = 0,
             j = q.length,
@@ -629,7 +643,7 @@
             if (data[0] == '!IMG') {
               return Genki.parse.image(data);
             }
-          }) : '<div class="text-passage' + (q[i].vertical ? ' vertical-text' : '') + '" ' + (q[i].text.replace(/<br>/g, '').length < 50 ? 'style="text-align:center;"' : '') + '>' + q[i].text + '</div>' + (q[i].helper || '')) + (o.questionsAlignLeft ? '</div>' : '') + '</div>';
+          }) : '<div class="text-passage' + (q[i].vertical ? ' vertical-text' : '') + '" ' + (q[i].text.replace(/<br>/g, '').length < 50 ? 'style="text-align:center;"' : '') + '>' + q[i].text + '</div>' + (q[i].helper || '')) + (o.questionsAlignLeft ? '</div>' : '') + '</div>'+ (vocab ? '<button class="button vocab-spoiler-toggle" onclick="Genki.toggle.vocabSpoiler(this);"><i class="fa"></i>Show Choices</button><div class="vocab-spoiler">' : '');
 
           // ready-only questions contain text only, no answers
           if (q[i].text) {
@@ -662,7 +676,7 @@
 
           }
 
-          quiz += '</div>'; // ends the question block
+          quiz += (vocab ? '</div>' : '') + '</div>'; // ends the question block
           option = 65; // resets the option id so the next answers begin with A, B, C..
           ++Genki.stats.problems; // increment problems number
         }
@@ -672,9 +686,16 @@
           helper = true;
           zone.className += ' helper-' + ((storageOK && localStorage.furiganaVisible == 'false') ? 'hidden' : 'present');
         }
+        
+        // enables the vocab spoiler for multi-choice if preferred
+        if (vocab && storageOK && localStorage.spoilerMode == 'true') {
+          zone.className += ' spoiler-mode';
+        }
 
         // add the multi-choice quiz to the quiz zone
-        zone.innerHTML = quiz + '</div><div id="quiz-progress"><div id="quiz-progress-bar"></div></div>'+
+        zone.innerHTML = quiz + '</div>'+
+          '<div id="next-button" class="quiz-multi-row" style="margin-top:-20px; visibility:hidden;' + (Genki.feedbackMode == 'classic' ? 'display:none;' : '') + '"><div tabindex="0" class="quiz-multi-answer next-question" onclick="Genki.showNextQuestion(this);" onkeypress="event.key == \'Enter\' && Genki.showNextQuestion(this);">NEXT</div></div>'+
+          '<div id="quiz-progress"><div id="quiz-progress-bar"></div></div>'+
           '<div id="review-exercise" class="center clearfix">'+ 
             (Genki.appendix ? '' : '<button class="button text-selection-mode-button" onclick="Genki.toggle.textSelection(this);"><i class="fa">&#xf246;</i> Enable Text Selection</button>')+
             (helper ? Genki.lang.toggle_furigana : '')+
@@ -1100,6 +1121,10 @@
 
       Genki.timer = timer;
 
+      if (storageOK && localStorage.timerAutoPause != 'false') {
+        document.addEventListener("visibilitychange", Genki.startOrPauseTimerByVisibility);
+      }
+
       // indicate the exercise has been loaded in
       document.getElementById('exercise').className += ' content-loaded ' + (o.type == 'stroke' ? 'stroke-quiz multi' : o.type) + '-quiz';
 
@@ -1124,6 +1149,12 @@
           // lets us know if the fallback is still being used
           Genki.debug && console.warn('autofocus failed: HTMLElement.focus() will be used as a fallback.');
         }
+      }
+      
+      // autofocus answer options
+      if (o.type == 'multi') {
+        var q = document.querySelector(document.querySelector('.spoiler-mode') ? '.vocab-spoiler-toggle' : '.quiz-multi-answer');
+        if (q) q.focus();
       }
       
       // audio events
@@ -1203,11 +1234,42 @@
         // if there's another question, show it and hide the last one
         var last = document.getElementById('quiz-q' + Genki.stats.solved++),
             next = document.getElementById('quiz-q' + Genki.stats.solved);
-
+        
         if (next) {
-          next.style.display = ''; // show the next question
-          last.style.display = 'none'; // hide the prior question
-          Genki.incrementProgressBar();
+          // instantly show if the answer was wrong or correct
+          if (Genki.feedbackMode == 'instant' && Genki.active.type == 'multi') {
+            // cache for nodes used in instant feedback mode
+            if (!Genki.multiNodes) {
+              Genki.multiNodes = {
+                list : document.getElementById('question-list'),
+                button : document.getElementById('next-button'),
+                next : null,
+                last : null
+              };
+            }
+            
+            // prevent reanswering questions (by initiating "quiz ended" state) + show the next button
+            Genki.quizOver = true;
+            Genki.multiNodes.list.className += ' multi-quiz quiz-over';
+            Genki.multiNodes.button.style.visibility = 'visible';
+            Genki.multiNodes.button.firstChild.focus(); // focus next button
+            
+            // cache these for use with showNextQuestion()
+            Genki.multiNodes.next = next;
+            Genki.multiNodes.last = last;
+          }
+          
+          // classic progression (answers shown only at end)
+          else {
+            next.style.display = ''; // show the next question
+            last.style.display = 'none'; // hide the prior question
+            
+            // focus answer for next question
+            var q = next.querySelector(document.querySelector('.spoiler-mode') ? '.vocab-spoiler-toggle' : '.quiz-multi-answer');
+            if (q) q.focus();
+            
+            Genki.incrementProgressBar();
+          }
 
         } else { // end the quiz if there's no new question
           Genki.endQuiz(flag == 'stroke' ? flag : 'multi');
@@ -1226,6 +1288,25 @@
       if (flag == 'stroke' && document.getElementById('canvas-' + Genki.stats.solved)) {
         KanjiCanvas.init('canvas-' + Genki.stats.solved);
       }
+    },
+    
+    // proceeds to next question without interacting with answer values (mainly used for instant feedback mode)
+    showNextQuestion : function (caller) {
+      // hide prev question + show next one
+      Genki.multiNodes.next.style.display = '';
+      Genki.multiNodes.last.style.display = 'none';
+      
+      // restore active quiz state (not ended) + hide next button
+      Genki.quizOver = false;
+      Genki.multiNodes.list.className = Genki.multiNodes.list.className.replace(' multi-quiz quiz-over', '');
+      Genki.multiNodes.button.style.visibility = 'hidden';
+      
+      // focus answer for next question
+      var q = Genki.multiNodes.next.querySelector(document.querySelector('.spoiler-mode') ? '.vocab-spoiler-toggle' : '.quiz-multi-answer');
+      if (q) q.focus();
+      
+      // increment progress
+      Genki.incrementProgressBar();
     },
 
 
@@ -1349,6 +1430,10 @@
              score : 0,
            exclude : 0
         };
+        
+        if (Genki.multiNodes) {
+          delete Genki.multiNodes;
+        }
         
         // stop timer
         Genki.timer.isRunning() && Genki.timer.stop();
@@ -1602,20 +1687,31 @@
         if (!Genki.check.busy && input.value == input.dataset.answer) {
           Genki.check.busy = true;
           
-          setTimeout(function() {
-            var next = Genki.input.map[Genki.input.index + 1];
+          var next = Genki.input.map[Genki.input.index + 1];
 
-            // focuses the next input if available, otherwise it asks if the student wants to check their answers
-            if (next) {
-              next.focus();
+          // focuses the next input if available, otherwise it asks if the student wants to check their answers
+          if (next) {
+            next.focus();
 
-            } else {
+          } else {
+            window.setTimeout(function() { // delay required since final value seems to be erased when checked immediately
               input.blur();
               Genki.check.answers(true);
-            }
-          
+              Genki.check.busy = false;
+            }, 10);
+          }
+        }
+        
+        // checks if currently busy processing the previous answer
+        else if (Genki.check.busy) {
+          window.setTimeout(function() { // delay required to prevent text duplication when proceeding to already filled inputs
             Genki.check.busy = false;
-          }, 50);
+            
+            // use `document.activeElement` over `input` as the latter causes previously input text to disappear on firefox
+            if (document.activeElement && document.activeElement.value && document.activeElement.value == Genki.input.map[Genki.input.index - 1].value) { // clears up duplicated texts from IMEs on current input
+              document.activeElement.value = '';
+            }
+          }, 10);
         }
       },
       
@@ -1796,6 +1892,24 @@
         // save settings if supported
         if (storageOK) {
           localStorage.furiganaVisible = state;
+        }
+      },
+      
+      
+      // toggles the vocab spoiler in multi-choice vocab
+      vocabSpoiler : function (button) {
+        var spoiler = button.nextSibling;
+
+        // turn spoiler on
+        if (/spoiler-off/.test(spoiler.className)) {
+          spoiler.className = spoiler.className.replace('spoiler-off', '');
+          button.innerHTML = button.innerHTML.replace('Hide', 'Show');
+        }
+
+        // turn spoiler off
+        else {
+          spoiler.className += ' spoiler-off';
+          button.innerHTML = button.innerHTML.replace('Show', 'Hide');
         }
       },
       
@@ -2490,7 +2604,31 @@
       }
     },
     
+
+    // start or pause timer according to page visibility
+    startOrPauseTimerByVisibility : function () {
+      if (document.hidden && Genki.timer.isRunning()) {
+        Genki.timer.pause();
+      } else if (!document.hidden && Genki.timer.isPaused() && !Genki.isTimerPausedByPopup) {
+        Genki.timer.start();
+      }
+    },
+
+
+    // pause timer when open popup
+    pauseTimerWhenOpenPopup: function () {
+       Genki.timer.pause();
+       Genki.isTimerPausedByPopup = true;
+    },
     
+
+    // start timer when close popup
+    startTimerWhenClosePopup: function () {
+       Genki.timer.start();
+       Genki.isTimerPausedByPopup = false;
+    },
+
+
     // initial setup for exercise functionality
     init : function () {
       // finds the currently active exercise in the exercise list and sets up essential data for following statements
